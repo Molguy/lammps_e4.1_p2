@@ -1,0 +1,11 @@
+# Time-averaged data for fix 5
+# TimeStep Number-of-rows
+# Row c_hcom
+0 3
+1 9.34332
+2 9.2985
+3 6.6049
+100 3
+1 9.33347
+2 9.31779
+3 6.59575

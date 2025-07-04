@@ -1,0 +1,282 @@
+# This is the control script for LAMMPS
+
+echo			both
+log		1.1_Initialize.out
+
+#-------------------------------------------------------------------------------
+# Stage 1.1: Initialize LAMMPS run for 3-d periodic
+#-------------------------------------------------------------------------------
+
+units                   real
+boundary                p p p
+atom_style              full
+
+pair_style              lj/class2/coul/long 9.5
+kspace_style            pppm 0.00001
+pair_modify             tail yes
+bond_style              class2
+angle_style             class2
+dihedral_style          class2
+improper_style          class2
+special_bonds           lj/coul 0.0 0.0 1.0
+
+read_data               structure.dat
+Reading data file ...
+  orthogonal box = (0 0 0) to (14.501702 14.501702 14.501702)
+  1 by 1 by 1 MPI processor grid
+  reading atoms ...
+  280 atoms
+  scanning bonds ...
+  4 = max bonds/atom
+  scanning angles ...
+  6 = max angles/atom
+  scanning dihedrals ...
+  15 = max dihedrals/atom
+  scanning impropers ...
+  4 = max impropers/atom
+  orthogonal box = (0 0 0) to (14.501702 14.501702 14.501702)
+  1 by 1 by 1 MPI processor grid
+  reading bonds ...
+  255 bonds
+  reading angles ...
+  440 angles
+  reading dihedrals ...
+  465 dihedrals
+  reading impropers ...
+  280 impropers
+Finding 1-2 1-3 1-4 neighbors ...
+  special bond factors lj:    0        0        1
+  special bond factors coul:  0        0        1
+     4 = max # of 1-2 neighbors
+     6 = max # of 1-3 neighbors
+    10 = max # of special neighbors
+  special bonds CPU = 0.000 seconds
+  read_data CPU = 0.034 seconds
+
+include                 pairparameters.dat
+# Ya están definidos:
+pair_coeff       1 1 0.0634 3.7584 # c2 - c2
+pair_coeff       2 2 0.071 3.884   # c3 - c3
+pair_coeff      3 3 0.0748 3.87    # c4o - c4o
+pair_coeff      4 4 0.023 2.878    # h - h
+pair_coeff      5 5 0.008 1.087    # h* - h*
+pair_coeff      6 6 0.096 3.58     # o - o
+
+# Faltantes (1 2 hasta 5 6), usando mezcla geométrica o parámetros que tú definas:
+# sqrt(0.0634*0.071), (3.7584+3.884)/2 . . .
+
+pair_coeff      1 2 0.0661 3.820   # c2 - c3
+pair_coeff       1 3 0.0687 3.814  # c2 - c4o
+pair_coeff      1 4 0.0382 3.318   # c2 - h
+pair_coeff      1 5 0.0225 2.422   # c2 - h*
+pair_coeff       1 6 0.0778 3.669  # c2 - o
+
+pair_coeff       2 3 0.0728 3.877  # c3 - c40
+pair_coeff      2 4 0.0405 3.381   # c3 - h
+pair_coeff      2 5 0.0238 2.485   # c3 - h*
+pair_coeff      2 6 0.0825 3.732   # c3 - o
+
+pair_coeff      3 4 0.0414 3.374   # c4o - h
+pair_coeff      3 5 0.0245 2.478   # c4o - h*
+pair_coeff      3 6 0.0849 3.725   # c4o - o
+
+pair_coeff      4 5 0.0135 1.983   # h - h*
+pair_coeff      4 6 0.0470 3.229   # h - o
+
+pair_coeff      5 6 0.0276 2.334   # h* - o
+
+neighbor                2.0 bin
+neigh_modify            delay 0 every 1 check yes
+
+variable                R               equal 0.00198722
+variable                sysvol          equal vol
+variable                sysmass         equal mass(all)/6.0221367e+023
+variable                sysdensity      equal v_sysmass/v_sysvol/1.0e-24
+variable                coulomb         equal ecoul+elong
+variable                etotal          equal etotal
+variable                pe              equal pe
+variable                ke              equal ke
+variable                evdwl           equal evdwl
+variable                epair           equal epair
+variable                ebond           equal ebond
+variable                eangle          equal eangle
+variable                edihed          equal edihed
+variable                eimp            equal eimp
+variable                lx              equal lx
+variable                ly              equal ly
+variable                lz              equal lz
+variable                Nthermo         equal 0
+variable                cella           equal lx
+variable                cellb           equal sqrt(ly*ly+xy*xy)
+variable                cellc           equal sqrt(lz*lz+xz*xz+yz*yz)
+variable                cellalpha       equal acos((xy*xz+ly*yz)/(v_cellb*v_cellc))
+variable                cellbeta        equal acos(xz/v_cellc)
+variable                cellgamma       equal acos(xy/v_cellb)
+variable                p               equal press
+variable                pxx             equal pxx
+variable                pyy             equal pyy
+variable                pzz             equal pzz
+variable                pyz             equal pyz
+variable                pxz             equal pxz
+variable                pxy             equal pxy
+variable                sxx             equal -pxx
+variable                syy             equal -pyy
+variable                szz             equal -pzz
+variable                syz             equal -pyz
+variable                sxz             equal -pxz
+variable                sxy             equal -pxy
+variable                fmax            equal fmax
+variable                fnorm           equal fnorm
+variable                time equal step*dt+0.000001
+
+thermo_style            custom step v_time press vol v_sysdensity temp ebond eangle edihed eimp evdwl ecoul etail elong pe ke
+thermo_modify           flush yes
+
+group   eta molecule 9
+9 atoms in group eta
+group   hex molecule 3
+20 atoms in group hex
+group   con molecule 9 3
+29 atoms in group con
+
+#
+# Set up the fixed and movable groups
+#
+
+group           movable union all
+280 atoms in group movable
+group           fixed subtract all movable
+0 atoms in group fixed
+log             1.1_NVE.out
+#-------------------------------------------------------------------------------
+# Stage 1.1: NVE integration for 10 fs with a timestep of 0.1 fs
+#-------------------------------------------------------------------------------
+
+reset_timestep          0
+thermo_style            custom step v_time press vol v_sysdensity temp ebond eangle edihed eimp evdwl ecoul etail elong pe ke
+WARNING: New thermo_style command, previous thermo_modify settings will be lost (src/output.cpp:904)
+thermo                  ${Nthermo}
+thermo                  0
+fix                     1 movable nve
+
+compute         ecom eta com
+fix         4 all ave/time 100 1 100 c_ecom file ecom.txt mode vector
+compute         hcom hex com
+fix         5 all ave/time 100 1 100 c_hcom file hcom.txt mode vector
+
+timestep                0.1
+run                     100
+PPPM initialization ...
+  using 12-bit tables for long-range coulomb (src/kspace.cpp:342)
+  G vector (1/distance) = 0.28924984
+  grid = 9 9 9
+  stencil order = 5
+  estimated absolute RMS force accuracy = 0.00197249
+  estimated relative force accuracy = 5.9400952e-06
+  using double precision FFTW3
+  3d grid and FFT values/proc = 4096 729
+Generated 0 of 15 mixed pair_coeff terms from sixthpower/geometric mixing rule
+Neighbor list info ...
+  update: every = 1 steps, delay = 0 steps, check = yes
+  max neighbors/atom: 2000, page size: 100000
+  master list distance cutoff = 11.5
+  ghost atom cutoff = 11.5
+  binsize = 5.75, bins = 3 3 3
+  1 neighbor lists, perpetual/occasional/extra = 1 0 0
+  (1) pair lj/class2/coul/long, perpetual
+      attributes: half, newton on
+      pair build: half/bin/newton
+      stencil: half/bin/3d
+      bin: standard
+Setting up Verlet run ...
+  Unit style    : real
+  Current step  : 0
+  Time step     : 0.1
+WARNING: Inconsistent image flags (src/domain.cpp:1051)
+Per MPI rank memory allocation (min/avg/max) = 18.08 | 18.08 | 18.08 Mbytes
+   Step         v_time         Press          Volume      v_sysdensity       Temp          E_bond        E_angle        E_dihed        E_impro         E_vdwl         E_coul         E_tail         E_long         PotEng         KinEng
+         0   1e-06          108976.4       3049.6987      0.73630879     0              122.13837      1937.8996     -97.709022      8.5982608      1251.3786      607.04062     -9.2795468     -602.91509      3226.4313      0
+       100   10.000001      31311.615      3049.6987      0.73630879     997.01328      181.41826      2186.6184     -123.6747      -25.711903      183.98118      597.68521     -9.2795468     -603.5533       2396.7631      829.16211
+Loop time of 0.156251 on 4 procs for 100 steps with 280 atoms
+
+Performance: 5.530 ns/day, 4.340 hours/ns, 639.997 timesteps/s, 179.199 katom-step/s
+384.8% CPU use with 1 MPI tasks x 4 OpenMP threads
+
+MPI task timing breakdown:
+Section |  min time  |  avg time  |  max time  |%varavg| %total
+---------------------------------------------------------------
+Pair    | 0.10363    | 0.10363    | 0.10363    |   0.0 | 66.32
+Bond    | 0.023092   | 0.023092   | 0.023092   |   0.0 | 14.78
+Kspace  | 0.023745   | 0.023745   | 0.023745   |   0.0 | 15.20
+Neigh   | 0.0029911  | 0.0029911  | 0.0029911  |   0.0 |  1.91
+Comm    | 0.0016289  | 0.0016289  | 0.0016289  |   0.0 |  1.04
+Output  | 7.9472e-05 | 7.9472e-05 | 7.9472e-05 |   0.0 |  0.05
+Modify  | 0.00069028 | 0.00069028 | 0.00069028 |   0.0 |  0.44
+Other   |            | 0.000399   |            |       |  0.26
+
+Nlocal:            280 ave         280 max         280 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+Nghost:           4342 ave        4342 max        4342 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+Neighs:          81257 ave       81257 max       81257 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+
+Total # of neighbors = 81257
+Ave neighs/atom = 290.20357
+Ave special neighs/atom = 4.9642857
+Neighbor list builds = 1
+Dangerous builds = 0
+
+restart                 0
+dump                    sci con custom 100 1.1.xyz id mol type x y z
+run                     0
+PPPM initialization ...
+  using 12-bit tables for long-range coulomb (src/kspace.cpp:342)
+  G vector (1/distance) = 0.28924984
+  grid = 9 9 9
+  stencil order = 5
+  estimated absolute RMS force accuracy = 0.00197249
+  estimated relative force accuracy = 5.9400952e-06
+  using double precision FFTW3
+  3d grid and FFT values/proc = 4096 729
+Generated 0 of 15 mixed pair_coeff terms from sixthpower/geometric mixing rule
+Setting up Verlet run ...
+  Unit style    : real
+  Current step  : 100
+  Time step     : 0.1
+WARNING: Inconsistent image flags (src/domain.cpp:1051)
+Per MPI rank memory allocation (min/avg/max) = 18.08 | 18.08 | 18.08 Mbytes
+   Step         v_time         Press          Volume      v_sysdensity       Temp          E_bond        E_angle        E_dihed        E_impro         E_vdwl         E_coul         E_tail         E_long         PotEng         KinEng
+       100   10.000001      31311.615      3049.6987      0.73630879     997.01328      181.41826      2186.6184     -123.6747      -25.711903      183.98118      597.68521     -9.2795468     -603.5533       2396.7631      829.16211
+Loop time of 1.49e-06 on 4 procs for 0 steps with 280 atoms
+
+268.5% CPU use with 1 MPI tasks x 4 OpenMP threads
+
+MPI task timing breakdown:
+Section |  min time  |  avg time  |  max time  |%varavg| %total
+---------------------------------------------------------------
+Pair    | 0          | 0          | 0          |   0.0 |  0.00
+Bond    | 0          | 0          | 0          |   0.0 |  0.00
+Kspace  | 0          | 0          | 0          |   0.0 |  0.00
+Neigh   | 0          | 0          | 0          |   0.0 |  0.00
+Comm    | 0          | 0          | 0          |   0.0 |  0.00
+Output  | 0          | 0          | 0          |   0.0 |  0.00
+Modify  | 0          | 0          | 0          |   0.0 |  0.00
+Other   |            | 1.49e-06   |            |       |100.00
+
+Nlocal:            280 ave         280 max         280 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+Nghost:           4351 ave        4351 max        4351 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+Neighs:          81270 ave       81270 max       81270 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+
+Total # of neighbors = 81270
+Ave neighs/atom = 290.25
+Ave special neighs/atom = 4.9642857
+Neighbor list builds = 0
+Dangerous builds = 0
+undump                  sci
+unfix                   1
+
+Total wall time: 0:00:00

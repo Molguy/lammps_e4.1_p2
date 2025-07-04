@@ -1,0 +1,11 @@
+# Time-averaged data for fix 4
+# TimeStep Number-of-rows
+# Row c_ecom
+0 3
+1 4.06943
+2 7.62235
+3 3.21119
+100 3
+1 4.07149
+2 7.64806
+3 3.24151
