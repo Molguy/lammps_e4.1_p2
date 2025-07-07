@@ -23,4 +23,4 @@ Aclarando que en este punto se decidio usar la herramienta venv para ejecutar sc
 .
     
     ovito 1.1a.xyz
-.
+
