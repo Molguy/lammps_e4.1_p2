@@ -14,13 +14,11 @@ Aclarando que en este punto se decidio usar la herramienta venv para ejecutar sc
 .
 
     python3 adcn.py && adcg.py
-.
-    
-    (RESPUESTA DE adcn.py Y GRAFICA DE adcg.py)
+(A este punto se mostrara la respuesta de adcn.py y la grafica de adcg.py)
 .
     
     deactivate
-Legando a este punto ya deberia estar desactivada la herramienta
+(Legando a este punto ya deberia estar desactivada la herramienta)
 
 .
     
