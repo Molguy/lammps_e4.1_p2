@@ -16,7 +16,8 @@ Aclarando que en este punto se decidio usar la herramienta venv para ejecutar sc
     python3 adcn.py && adcg.py
 (A este punto se mostrara la respuesta de adcn.py en la terminal y la grafica de adcg.py en una ventana)
 
-Ejemplo:
+_Ejemplo:_
+
 Moleculas mas cercanas al COM de la molécula 26:
 
 Molecula 9 → distancia = 3.01 Å
