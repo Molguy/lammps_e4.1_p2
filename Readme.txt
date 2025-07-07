@@ -41,3 +41,6 @@ OPT. Abre el archivo adcg.py (analizador de cercania grafica) como un documento 
  a) python3 adcg.py
 	- se generara una ventana con un grafico representativo
  b) deactivate
+
+Visualiza su estructura
+  ovito 1.1a.xyz
