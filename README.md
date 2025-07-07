@@ -3,15 +3,16 @@ El log de la simulación no fue arrojado, pero en cambio se tiene una respuesta 
 
 Tambien fueron agregados los textos de respuesta que fueron usados como lo indicaba el ejercicio: 
 
-    Lmp_serial < input.dat
-.
+    lmp_serial < input.dat
+    
+Aclarando que en este punto se decidio usar la herramienta venv para ejecutar scripts auxiliares
     
     python3 -m venv venv
 .
     
     source venv/bin/activate
 .
-    
+
     python3 adcn.py && adcg.py
 .
     
@@ -19,7 +20,9 @@ Tambien fueron agregados los textos de respuesta que fueron usados como lo indic
 .
     
     deactivate
+Legando a este punto ya deberia estar desactivada la herramienta
+
 .
     
-    ovito < 1.1a.xyz
+    ovito 1.1a.xyz
 .
